@@ -19,48 +19,66 @@ def get_map(path):
 
 
 def check_talbe(path,wechat2name,qq2name):
-    names = {'A':set(),'B':set(),'C':set()}
+    name_sets = {'A':set(),'B':set(),'C':set()}
     with open(path,'r') as fin, open("clock_in.log","w") as log:
         rows = csv.reader(fin, delimiter=',')
         next(rows)
         for line in rows:
-            print(line)
             if len(line[7]) > 1:
-                if len(line[7]) < 4:
-                    names[line[6][0]].add(line[7])
+                if len(line[7]) < 5:
+                    name_sets[line[6][0]].add(line[7])
                 else:
                     print("name:", line[7], file=log)
             if line[4].startswith("o86"):
                 if line[4] in wechat2name:
                     name = wechat2name[line[4]]
-                    names[line[6][0]].add(name)
+                    name_sets[line[6][0]].add(name)
                 else:
                     print("wechat:", line[4], file=log)
             if len(line[3]) > 1:
                 qq = int(line[3])
                 if qq in qq2name:
                     name = qq2name[qq]
-                    names[line[6][0]].add(name)
+                    name_sets[line[6][0]].add(name)
                 else:
                     print("qq:", qq, file=log)
-    return names
+    return name_sets
 
 
-def clock_in(path, names):
+def clock_in(path, name_sets):
     workbook = load_workbook(path)
     sheets = workbook.sheetnames
     booksheet = workbook[sheets[1]]
     col = next(booksheet.columns)
     name_list = [cell.value for cell in col]
-    name = set(name_list[1:])
+    name2room = {}
+    room2names = {}
+    cnt = 0
     for col in booksheet.columns:
-        pass
+        cnt += 1
+        if cnt == 3:
+            for i, each in enumerate(col):
+                name = name_list[i]
+                room = each.value
+                name2room[name] = room
+                if room not in room2names:
+                    room2names[room] = set()
+                room2names[room].add(name)
     for i, each in enumerate(col):
         if each.value == "已回家":
-            names['C'].add(name_list[i])
-    print("不顺利",names['B'])
-    print("已回家",names['C'])
-    print("未签到",name.difference(names['A'].union(names['B']).union(names['C'])))
+            name_sets['C'].add(name_list[i])
+    print("不顺利",name_sets['B'])
+    print("已回家",name_sets['C'])
+    not_clock_in = set(name_list[1:]).difference(name_sets['A'].union(name_sets['B']).union(name_sets['C']))
+    print("未签到")
+    for each in not_clock_in:
+        print(" + "+each,end=" : ")
+        room = name2room[each]
+        names = room2names[room]
+        for name in names:
+            if name != each and name not in not_clock_in:
+                print(name,end=" ")
+        print()
 
 
 if __name__ == "__main__":

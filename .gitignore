@@ -1,0 +1,7 @@
+*.xls
+*.xlsx
+*.doc
+*.docx
+*.csv
+*.log
+.DS_Store
