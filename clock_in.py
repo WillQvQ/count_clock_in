@@ -1,4 +1,6 @@
 from openpyxl import load_workbook
+import openpyxl.styles as sty
+import datetime
 import csv
 
 
@@ -71,17 +73,40 @@ def clock_in(path, name_sets):
     print("已回家",name_sets['C'])
     not_clock_in = set(name_list[1:]).difference(name_sets['A'].union(name_sets['B']).union(name_sets['C']))
     print("未签到")
+    undo = []
     for each in not_clock_in:
+        flag = True
         print(" + "+each,end=" : ")
         room = name2room[each]
         names = room2names[room]
         for name in names:
             if name != each and name not in not_clock_in:
                 print(name,end=" ")
+                flag = False
+        if flag:
+            undo.append(each)
         print()
-
+    day_cell = booksheet.cell(row=1, column=cnt)
+    cnt += 1
+    new_day_cell = booksheet.cell(row=1, column=cnt)
+    new_day_cell.value = day_cell.value + datetime.timedelta(days = 1)
+    new_day_cell.number_format = day_cell.number_format
+    for i, name in enumerate(name_list[1:]):
+        cell = booksheet.cell(row=i+2, column=cnt)
+        if name in name_sets['C']:
+            cell.value = "已回家"
+            cell.fill = sty.PatternFill(fill_type='solid',fgColor="ffff00")
+        elif name in name_sets['B']:
+            cell.value = "微信确认"
+        elif name not in undo:
+            cell.value = "微信确认"
+        else:
+            cell.value = "未确认"
+            cell.fill = sty.PatternFill(fill_type='solid',fgColor="ff0000")
+    workbook.save(path)
 
 if __name__ == "__main__":
+
     w, q = get_map('数据表.xlsx')
     n = check_talbe('2256106_seg_1.csv', w, q)
     clock_in('2018暑期住宿.xlsx', n)
