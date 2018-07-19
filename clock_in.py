@@ -2,6 +2,7 @@ from openpyxl import load_workbook
 import openpyxl.styles as sty
 import datetime
 import csv
+import sys
 
 
 def get_map(path):
@@ -47,7 +48,7 @@ def check_talbe(path,wechat2name,qq2name):
     return name_sets
 
 
-def clock_in(path, name_sets):
+def clock_in(path, name_sets, write, add_names):
     workbook = load_workbook(path)
     sheets = workbook.sheetnames
     booksheet = workbook[sheets[1]]
@@ -71,7 +72,7 @@ def clock_in(path, name_sets):
             name_sets['C'].add(name_list[i])
     print("不顺利",name_sets['B'])
     print("已回家",name_sets['C'])
-    not_clock_in = set(name_list[1:]).difference(name_sets['A'].union(name_sets['B']).union(name_sets['C']))
+    not_clock_in = set(name_list[1:]).difference(name_sets['A'].union(name_sets['B']).union(name_sets['C']).union(add_names))
     print("未签到")
     undo = []
     for each in not_clock_in:
@@ -86,27 +87,32 @@ def clock_in(path, name_sets):
         if flag:
             undo.append(each)
         print()
-    day_cell = booksheet.cell(row=1, column=cnt)
-    cnt += 1
-    new_day_cell = booksheet.cell(row=1, column=cnt)
-    new_day_cell.value = day_cell.value + datetime.timedelta(days = 1)
-    new_day_cell.number_format = day_cell.number_format
-    for i, name in enumerate(name_list[1:]):
-        cell = booksheet.cell(row=i+2, column=cnt)
-        if name in name_sets['C']:
-            cell.value = "已回家"
-            cell.fill = sty.PatternFill(fill_type='solid',fgColor="ffff00")
-        elif name in name_sets['B']:
-            cell.value = "微信确认"
-        elif name not in undo:
-            cell.value = "微信确认"
-        else:
-            cell.value = "未确认"
-            cell.fill = sty.PatternFill(fill_type='solid',fgColor="ff0000")
-    workbook.save(path)
+    if write:
+        print("writing...")
+        day_cell = booksheet.cell(row=1, column=cnt)
+        cnt += 1
+        new_day_cell = booksheet.cell(row=1, column=cnt)
+        new_day_cell.value = day_cell.value + datetime.timedelta(days = 1)
+        new_day_cell.number_format = day_cell.number_format
+        for i, name in enumerate(name_list[1:]):
+            cell = booksheet.cell(row=i+2, column=cnt)
+            if name in name_sets['C']:
+                cell.value = "已回家"
+                cell.fill = sty.PatternFill(fill_type='solid',fgColor="ffff00")
+            elif name in name_sets['B']:
+                cell.value = "微信确认"
+            elif name not in undo:
+                cell.value = "微信确认"
+            else:
+                cell.value = "未确认"
+                cell.fill = sty.PatternFill(fill_type='solid',fgColor="ff0000")
+        workbook.save(path)
+        print("ok!")
 
 if __name__ == "__main__":
-
+    write = len(sys.argv) > 1 and sys.argv[1] == "-w"
+    if len(sys.argv) > 1 and (sys.argv[1] == "-w" or sys.argv[1] == "-a"):
+        add_names = set(sys.argv[2:])
     w, q = get_map('数据表.xlsx')
     n = check_talbe('2256106_seg_1.csv', w, q)
-    clock_in('2018暑期住宿.xlsx', n)
+    clock_in('2018暑期住宿.xlsx', n, write, add_names)
