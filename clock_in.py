@@ -113,6 +113,8 @@ if __name__ == "__main__":
     write = len(sys.argv) > 1 and sys.argv[1] == "-w"
     if len(sys.argv) > 1 and (sys.argv[1] == "-w" or sys.argv[1] == "-a"):
         add_names = set(sys.argv[2:])
+    else:
+    	add_names = set()
     w, q = get_map('数据表.xlsx')
     n = check_talbe('2256106_seg_1.csv', w, q)
     clock_in('2018暑期住宿.xlsx', n, write, add_names)
