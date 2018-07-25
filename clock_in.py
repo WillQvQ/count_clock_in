@@ -87,9 +87,10 @@ def clock_in(path, name_sets, write, add_names):
         if flag:
             undo.append(each)
         print()
+    day_cell = booksheet.cell(row=1, column=cnt)
+    print(day_cell.value + datetime.timedelta(days = 1))
     if write:
         print("writing...")
-        day_cell = booksheet.cell(row=1, column=cnt)
         cnt += 1
         new_day_cell = booksheet.cell(row=1, column=cnt)
         new_day_cell.value = day_cell.value + datetime.timedelta(days = 1)
