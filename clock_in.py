@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from openpyxl import load_workbook
 import openpyxl.styles as sty
 import datetime
