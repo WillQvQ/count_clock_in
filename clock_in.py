@@ -24,7 +24,7 @@ def get_map(path):
 
 def check_talbe(path,wechat2name,qq2name):
     name_sets = {'A':set(),'B':set(),'C':set()}
-    with open(path,'r') as fin, open("clock_in.log","w") as log:
+    with open(path,'r', encoding='utf-8') as fin, open("clock_in.log","w") as log:
         rows = csv.reader(fin, delimiter=',')
         next(rows)
         for line in rows:
@@ -82,7 +82,7 @@ def clock_in(path, name_sets, write, add_names):
         room = name2room[each]
         names = room2names[room]
         for name in names:
-            if name != each and name not in not_clock_in:
+            if name != each and name not in not_clock_in and name not in name_sets['C']:
                 print(name,end=" ")
                 flag = False
         if flag:
